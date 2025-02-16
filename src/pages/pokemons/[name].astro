@@ -34,8 +34,8 @@ const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pok
                 <Title>{name}</Title>
             </div>
             <button id="btn-favorite" class=" ml-4" data-name={name} data-id={id}>
-                <Icon name="heart-outline" size={50}/>
-                <Icon class=" hidden " name="heart-full" size={50}/>
+                <Icon data-outline name="heart-outline" size={50}/>
+                <Icon data-full class=" hidden " name="heart-full" size={50}/>
             </button>
         </div>
         <PokemonCard name={name} url={url} isBig />
@@ -49,19 +49,41 @@ const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pok
 <script>
     interface FavoritePokemon {
         name: string;
-        ide: number;
+        id: number;
     }
-    document.addEventListener('astro:page-load', ()=>{
+    const handlePageLoad = () => {
+        let favoritesPokemons: FavoritePokemon[] = JSON.parse(localStorage.getItem('favorites') || '[]');
         const btnFavorite = document.querySelector(
             '#btn-favorite'
         ) as HTMLButtonElement
         if (!btnFavorite) return;
-        const name = btnFavorite.dataset.name;
-        const id = btnFavorite.dataset.id;
+        const name = btnFavorite.dataset.name ?? '';
+        const id = btnFavorite.dataset.id ?? '';
+        const hearOutline = btnFavorite.querySelector('[data-outline]') as HTMLElement;
+        const hearFull = btnFavorite.querySelector('[data-full]') as HTMLElement;
+        const isFavorite = favoritesPokemons.some(fav => fav.name === name);
+        if (isFavorite) {
+            hearOutline.classList.add('hidden');
+            hearFull.classList.remove('hidden');
+        }
+        const toggleFavorite = () => {
+            const isFavorite = favoritesPokemons.some(fav => fav.name === name)
+            if (isFavorite) {
+                favoritesPokemons = favoritesPokemons.filter(fav => fav.name !== name);
+            } else {
+                favoritesPokemons.push({
+                    id: +id,
+                    name: name });
+            }
+            localStorage.setItem('favorites', JSON.stringify(favoritesPokemons));
+        }
         btnFavorite.addEventListener('click', () => {
-            console.log({name, id})
+            hearOutline.classList.toggle('hidden');
+            hearFull.classList.toggle('hidden');
+            toggleFavorite();
         })
-    })
+    }
+    document.addEventListener("astro:page-load", handlePageLoad)
 </script>
 
 <style>
